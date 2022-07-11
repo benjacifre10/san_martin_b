@@ -9,3 +9,4 @@
 - github.com/gorilla/mux
 - github.com/rs/cors
 - github.com/dgrijalva/jwt-go
+- github.com/joho/godotenv
