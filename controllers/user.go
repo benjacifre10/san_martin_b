@@ -3,7 +3,6 @@ package controllers
 
 import (
 	"encoding/json"
-	"log"
 	"net/http"
 	"time"
 
@@ -57,33 +56,24 @@ func Login(w http.ResponseWriter, r *http.Request) {
 
 	err := json.NewDecoder(r.Body).Decode(&u)
 	if err != nil {
-		log.Println("erroraso")
-		http.Error(w, "Usuario y/o contrasena invalidos " + err.Error(), 400)
 		m := models.Response {
-			Message: "Usuario y/o contrasena invalidos " + err.Error(),
+			Message: "Faltan los parametros de entrada",
 			Code: 400,
 			Ok: false,
 		}
 		json.NewEncoder(w).Encode(m)
 		return
 	}
+
 
 	res, exists, err := services.LoginService(u)
-	if exists == false {
-		http.Error(w, "Usuario y/o contrasena invalidos " + err.Error(), 400)
+	if exists == false || err!= nil {
 		m := models.Response {
-			Message: "Usuario y/o contrasena invalidos " + err.Error(),
+			Message: "Usuario y/o contrasena invalidos",
 			Code: 400,
 			Ok: false,
 		}
 		json.NewEncoder(w).Encode(m)
-		return
-		//http.Error(w, "Usuario y/o contrasena invalidos", 400)
-		//return
-	}
-
-	if err != nil {
-		http.Error(w, "Hubo un error en el login " + err.Error(), 400)
 		return
 	}
 
