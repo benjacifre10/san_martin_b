@@ -15,29 +15,29 @@ import (
 
 /***************************************************************/
 /***************************************************************/
-/* GetRolesDB get the roles from db */
-func GetRolesDB() ([]*models.Role, bool) {
+/* GetTestTypesDB get the test types from db */
+func GetTestTypesDB() ([]*models.TestType, bool) {
 	ctx, cancel := context.WithTimeout(context.Background(), 15 * time.Second)
 	defer cancel()
 
 	db := config.MongoConnection.Database("san_martin")
-	collection := db.Collection("role")
+	collection := db.Collection("test_type")
 
-	var results []*models.Role
+	var results []*models.TestType
 
 	condition := bson.M {  }
 	optionsQuery := options.Find()
 	optionsQuery.SetSort(bson.D {{ Key: "type", Value: -1}})
 
-	roles, err := collection.Find(ctx, condition, optionsQuery)
+	testTypes, err := collection.Find(ctx, condition, optionsQuery)
 	if err != nil {
 		log.Fatal(err.Error())
 		return results, false
 	}
 
-	for roles.Next(context.TODO()) {
-		var row models.Role
-		err := roles.Decode(&row)
+	for testTypes.Next(context.TODO()) {
+		var row models.TestType
+		err := testTypes.Decode(&row)
 		if err != nil {
 			return results, false
 		}
@@ -49,21 +49,21 @@ func GetRolesDB() ([]*models.Role, bool) {
 
 /***************************************************************/
 /***************************************************************/
-/* InsertRoleDB insert one role in db */
-func InsertRoleDB(r models.Role) (string, error) {
+/* InsertTestTypeDB insert one test type in db */
+func InsertTestTypeDB(t models.TestType) (string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 15 * time.Second)
 	defer cancel()
 
 	db := config.MongoConnection.Database("san_martin")
-	collection := db.Collection("role")
+	collection := db.Collection("test_type")
 
 	row := bson.M {
-		"type": r.Type,
+		"type": t.Type,
 	}
 
 	result, err := collection.InsertOne(ctx, row)
 	if err != nil {
-		return "Hubo un error al insertar el rol", err
+		return "Hubo un error al insertar el tipo de examen", err
 	}
 	
 	objID, _ := result.InsertedID.(primitive.ObjectID)
@@ -72,20 +72,20 @@ func InsertRoleDB(r models.Role) (string, error) {
 
 /***************************************************************/
 /***************************************************************/
-/* CheckExistRole check if role already exists */
-func CheckExistRole(typeRol string) (string, bool, error) {
+/* CheckExistTestType check if test type already exists */
+func CheckExistTestType(typeTestType string) (string, bool, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 15 * time.Second)
 	defer cancel()
 
 	db := config.MongoConnection.Database("san_martin")
-	collection := db.Collection("role")
+	collection := db.Collection("test_type")
 
-	typeRol = strings.ToUpper(typeRol)
+	typeTestType = strings.ToUpper(typeTestType)
 	condition := bson.M {
-		"type": typeRol,
+		"type": typeTestType,
 	}
 
-	var result models.Role
+	var result models.TestType
 
 	err := collection.FindOne(ctx, condition).Decode(&result)
 	if (result.Type != "") {
@@ -97,25 +97,25 @@ func CheckExistRole(typeRol string) (string, bool, error) {
 
 /***************************************************************/
 /***************************************************************/
-/* UpdateRoleDB update the role in the db */
-func UpdateRoleDB(r models.Role) (bool, error) {
+/* UpdateTestTypeDB update the test type in the db */
+func UpdateTestTypeDB(t models.TestType) (bool, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 15 * time.Second)
 	defer cancel()
 
 	db := config.MongoConnection.Database("san_martin")
-	collection := db.Collection("role")
+	collection := db.Collection("test_type")
 
 	row := make(map[string]interface{})
-	row["type"] = r.Type
+	row["type"] = t.Type
 
 	updateString := bson.M {
 		"$set": row,
 	}
 
-	var idRole string
-	idRole = r.ID.Hex()
+	var idTestType string
+	idTestType = t.ID.Hex()
 
-	objID, _ := primitive.ObjectIDFromHex(idRole)
+	objID, _ := primitive.ObjectIDFromHex(idTestType)
 
 	filter := bson.M { "_id": bson.M { "$eq": objID }}
 
@@ -129,15 +129,15 @@ func UpdateRoleDB(r models.Role) (bool, error) {
 
 /***************************************************************/
 /***************************************************************/
-/* DeleteRoleDB delete the user role from the db */
-func DeleteRoleDB(IDRole string) error {
+/* DeleteTestTypeDB delete the test type from the db */
+func DeleteTestTypeDB(IDTestType string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 15 * time.Second)
 	defer cancel()
 
 	db := config.MongoConnection.Database("san_martin")
-	collection := db.Collection("role")
+	collection := db.Collection("test_type")
 
-	objID, _ := primitive.ObjectIDFromHex(IDRole)
+	objID, _ := primitive.ObjectIDFromHex(IDTestType)
 
 	condition := bson.M {
 		"_id": objID,
@@ -149,22 +149,22 @@ func DeleteRoleDB(IDRole string) error {
 
 /***************************************************************/
 /***************************************************************/
-/* GetRoleDB get the role user by id */
-func GetRoleDB(IDRole string) (models.Role, error) {
+/* GetTestTypeDB get the test type by id */
+func GetTestTypeDB(IDTestType string) (models.TestType, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 15 * time.Second)
 	defer cancel()
 
 	db := config.MongoConnection.Database("san_martin")
-	collection := db.Collection("role")
+	collection := db.Collection("test_type")
 
-	objID, _ := primitive.ObjectIDFromHex(IDRole)
+	objID, _ := primitive.ObjectIDFromHex(IDTestType)
 
 	condition := bson.M {
 		"_id": objID,
 	}
 
-	var role models.Role
+	var testType models.TestType
 
-	err := collection.FindOne(ctx, condition).Decode(&role)
-	return role, err
+	err := collection.FindOne(ctx, condition).Decode(&testType)
+	return testType, err
 }

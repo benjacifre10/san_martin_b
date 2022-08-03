@@ -7,8 +7,9 @@ import (
 
 /***************************************************************/
 /***************************************************************/
-/* Role model for the mongo DB */
-type Role struct {
+/* Degree model for the mongo DB */
+type Degree struct {
 	ID primitive.ObjectID `bson:"_id,omitempty" json:""`
-	Type string `bson:"type" json:"type,omitempty"`
+	Name string `bson:"name" json:"name,omitempty"`
+	Active bool `bson:"active" json:"active"`
 }

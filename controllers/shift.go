@@ -11,13 +11,13 @@ import (
 
 /***************************************************************/
 /***************************************************************/
-/* GetRoles get all the user roles */
-func GetRoles(w http.ResponseWriter, r *http.Request) {
-	result, status := services.GetRolesService()
-	if status == false {
+/* GetShifts get all the shifts of the academy */
+func GetShifts(w http.ResponseWriter, r *http.Request) {
+	result, code, err := services.GetShiftsService()
+	if code != 200 {
 		res := models.Response {
-			Message: "Error al consultar los roles",
-			Code: 400,
+			Message: "Error al consultar los turnos " + err.Error(),
+			Code: code,
 		}
 		json.NewEncoder(w).Encode(res)
 		return
@@ -34,15 +34,15 @@ func GetRoles(w http.ResponseWriter, r *http.Request) {
 
 /***************************************************************/
 /***************************************************************/
-/* InsertRole insert one user role */
-func InsertRole(w http.ResponseWriter, r *http.Request) {
-	var role models.Role
-	err := json.NewDecoder(r.Body).Decode(&role)
+/* InsertShift insert one academy shift */
+func InsertShift(w http.ResponseWriter, r *http.Request) {
+	var shift models.Shift
+	err := json.NewDecoder(r.Body).Decode(&shift)
 
-	msg, code, err := services.InsertRoleService(role)
+	msg, code, err := services.InsertShiftService(shift)
 	if err != nil || code != 201 {
 		res := models.Response {
-			Message: "Error al insertar el rol. " + msg,
+			Message: "Error al insertar el turno. " + msg,
 			Code: code,
 		}
 		json.NewEncoder(w).Encode(res)
@@ -51,27 +51,28 @@ func InsertRole(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusCreated)
 	res := models.Response {
-		Message: "Se ha insertado el rol correctamente",
+		Message: "Se ha insertado el turno correctamente",
 		Code: code,
 		Data: msg,
 	}
 	json.NewEncoder(w).Encode(res)
+	w.Header().Set("Content-Type", "application/json")
 }
 
 /***************************************************************/
 /***************************************************************/
-/* UpdateRole update one user role */
-func UpdateRole(w http.ResponseWriter, r *http.Request) {
-	var role models.Role
-	err := json.NewDecoder(r.Body).Decode(&role)
+/* UpdateShift update one academy shift */
+func UpdateShift(w http.ResponseWriter, r *http.Request) {
+	var shift models.Shift
+	err := json.NewDecoder(r.Body).Decode(&shift)
 
 	var code int
 	var msg string
-	msg, code, err = services.UpdateRoleService(role)
+	msg, code, err = services.UpdateShiftService(shift)
 	
 	if err != nil || code != 200 {
 		res := models.Response {
-			Message: "Error al actualizar el rol. " + msg,
+			Message: "Error al actualizar el turno. " + msg,
 			Code: code,
 		}
 		json.NewEncoder(w).Encode(res)
@@ -85,25 +86,24 @@ func UpdateRole(w http.ResponseWriter, r *http.Request) {
 	}
 	json.NewEncoder(w).Encode(res)
 }
-
 /***************************************************************/
 /***************************************************************/
-/* DeleteRole delete one user role */
-func DeleteRole(w http.ResponseWriter, r *http.Request) {
+/* DeleteShift delete one academy shift */
+func DeleteShift(w http.ResponseWriter, r *http.Request) {
 	ID := r.URL.Query().Get("id")
 	if len(ID) < 1 {
 		res := models.Response {
-			Message: "Falta un parametro para borrar el rol",
+			Message: "Falta un parametro para borrar el turno",
 			Code: 400,
 		}
 		json.NewEncoder(w).Encode(res)
 		return
 	}
 
-	msg, code, err := services.DeleteRoleService(ID)
+	msg, code, err := services.DeleteShiftService(ID)
 	if err != nil || code != 200 {
 		res := models.Response {
-			Message: "Error al borrar el rol. " + msg,
+			Message: "Error al borrar el turno. " + msg,
 			Code: code,
 		}
 		json.NewEncoder(w).Encode(res)

@@ -11,12 +11,12 @@ import (
 
 /***************************************************************/
 /***************************************************************/
-/* GetRoles get all the user roles */
-func GetRoles(w http.ResponseWriter, r *http.Request) {
-	result, status := services.GetRolesService()
+/* GetTestTypes get all the test types */
+func GetTestTypes(w http.ResponseWriter, r *http.Request) {
+	result, status := services.GetTestTypesService()
 	if status == false {
 		res := models.Response {
-			Message: "Error al consultar los roles",
+			Message: "Error al consultar los tipos de examenes",
 			Code: 400,
 		}
 		json.NewEncoder(w).Encode(res)
@@ -34,15 +34,15 @@ func GetRoles(w http.ResponseWriter, r *http.Request) {
 
 /***************************************************************/
 /***************************************************************/
-/* InsertRole insert one user role */
-func InsertRole(w http.ResponseWriter, r *http.Request) {
-	var role models.Role
-	err := json.NewDecoder(r.Body).Decode(&role)
+/* InsertTestType insert one test type */
+func InsertTestType(w http.ResponseWriter, r *http.Request) {
+	var testType models.TestType
+	err := json.NewDecoder(r.Body).Decode(&testType)
 
-	msg, code, err := services.InsertRoleService(role)
+	msg, code, err := services.InsertTestTypeService(testType)
 	if err != nil || code != 201 {
 		res := models.Response {
-			Message: "Error al insertar el rol. " + msg,
+			Message: "Error al insertar el tipo de examen. " + msg,
 			Code: code,
 		}
 		json.NewEncoder(w).Encode(res)
@@ -51,7 +51,7 @@ func InsertRole(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusCreated)
 	res := models.Response {
-		Message: "Se ha insertado el rol correctamente",
+		Message: "Se ha insertado el tipo de examen correctamente",
 		Code: code,
 		Data: msg,
 	}
@@ -60,18 +60,18 @@ func InsertRole(w http.ResponseWriter, r *http.Request) {
 
 /***************************************************************/
 /***************************************************************/
-/* UpdateRole update one user role */
-func UpdateRole(w http.ResponseWriter, r *http.Request) {
-	var role models.Role
-	err := json.NewDecoder(r.Body).Decode(&role)
+/* UpdateTestType update one test type */
+func UpdateTestType(w http.ResponseWriter, r *http.Request) {
+	var testType models.TestType
+	err := json.NewDecoder(r.Body).Decode(&testType)
 
 	var code int
 	var msg string
-	msg, code, err = services.UpdateRoleService(role)
+	msg, code, err = services.UpdateTestTypeService(testType)
 	
 	if err != nil || code != 200 {
 		res := models.Response {
-			Message: "Error al actualizar el rol. " + msg,
+			Message: "Error al actualizar el tipo de examen. " + msg,
 			Code: code,
 		}
 		json.NewEncoder(w).Encode(res)
@@ -88,22 +88,22 @@ func UpdateRole(w http.ResponseWriter, r *http.Request) {
 
 /***************************************************************/
 /***************************************************************/
-/* DeleteRole delete one user role */
-func DeleteRole(w http.ResponseWriter, r *http.Request) {
+/* DeleteTestType delete one test type */
+func DeleteTestType(w http.ResponseWriter, r *http.Request) {
 	ID := r.URL.Query().Get("id")
 	if len(ID) < 1 {
 		res := models.Response {
-			Message: "Falta un parametro para borrar el rol",
+			Message: "Falta un parametro para borrar el tipo de examen",
 			Code: 400,
 		}
 		json.NewEncoder(w).Encode(res)
 		return
 	}
 
-	msg, code, err := services.DeleteRoleService(ID)
+	msg, code, err := services.DeleteTestTypeService(ID)
 	if err != nil || code != 200 {
 		res := models.Response {
-			Message: "Error al borrar el rol. " + msg,
+			Message: "Error al borrar el tipo de examen. " + msg,
 			Code: code,
 		}
 		json.NewEncoder(w).Encode(res)

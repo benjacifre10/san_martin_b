@@ -7,8 +7,8 @@ import (
 
 /***************************************************************/
 /***************************************************************/
-/* Role model for the mongo DB */
-type Role struct {
+/* Shift model for the mongo DB */
+type Shift struct {
 	ID primitive.ObjectID `bson:"_id,omitempty" json:""`
 	Type string `bson:"type" json:"type,omitempty"`
 }

@@ -3,7 +3,6 @@ package db
 import (
 	"context"
 	"log"
-	"strings"
 	"time"
 
 	"github.com/benjacifre10/san_martin_b/config"
@@ -15,29 +14,29 @@ import (
 
 /***************************************************************/
 /***************************************************************/
-/* GetRolesDB get the roles from db */
-func GetRolesDB() ([]*models.Role, bool) {
+/* GetStudyPlansDB get the study plans from db */
+func GetStudyPlansDB() ([]*models.StudyPlan, bool) {
 	ctx, cancel := context.WithTimeout(context.Background(), 15 * time.Second)
 	defer cancel()
 
 	db := config.MongoConnection.Database("san_martin")
-	collection := db.Collection("role")
+	collection := db.Collection("study_plan")
 
-	var results []*models.Role
+	var results []*models.StudyPlan
 
 	condition := bson.M {  }
 	optionsQuery := options.Find()
-	optionsQuery.SetSort(bson.D {{ Key: "type", Value: -1}})
+	optionsQuery.SetSort(bson.D {{ Key: "name", Value: 1}, { Key: "state", Value: 1}})
 
-	roles, err := collection.Find(ctx, condition, optionsQuery)
+	studyPlans, err := collection.Find(ctx, condition, optionsQuery)
 	if err != nil {
 		log.Fatal(err.Error())
 		return results, false
 	}
 
-	for roles.Next(context.TODO()) {
-		var row models.Role
-		err := roles.Decode(&row)
+	for studyPlans.Next(context.TODO()) {
+		var row models.StudyPlan
+		err := studyPlans.Decode(&row)
 		if err != nil {
 			return results, false
 		}
@@ -49,21 +48,23 @@ func GetRolesDB() ([]*models.Role, bool) {
 
 /***************************************************************/
 /***************************************************************/
-/* InsertRoleDB insert one role in db */
-func InsertRoleDB(r models.Role) (string, error) {
+/* InsertStudyPlanDB insert one study plan in db */
+func InsertStudyPlanDB(s models.StudyPlan) (string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 15 * time.Second)
 	defer cancel()
 
 	db := config.MongoConnection.Database("san_martin")
-	collection := db.Collection("role")
+	collection := db.Collection("study_plan")
 
 	row := bson.M {
-		"type": r.Type,
+		"name": s.Name,
+		"code": s.Code,
+		"state": s.State,
 	}
 
 	result, err := collection.InsertOne(ctx, row)
 	if err != nil {
-		return "Hubo un error al insertar el rol", err
+		return "Hubo un error al insertar el plan de estudio", err
 	}
 	
 	objID, _ := result.InsertedID.(primitive.ObjectID)
@@ -72,23 +73,22 @@ func InsertRoleDB(r models.Role) (string, error) {
 
 /***************************************************************/
 /***************************************************************/
-/* CheckExistRole check if role already exists */
-func CheckExistRole(typeRol string) (string, bool, error) {
+/* CheckExistStudyPlan check if study plan already exists */
+func CheckExistStudyPlan(code string) (string, bool, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 15 * time.Second)
 	defer cancel()
 
 	db := config.MongoConnection.Database("san_martin")
-	collection := db.Collection("role")
+	collection := db.Collection("study_plan")
 
-	typeRol = strings.ToUpper(typeRol)
 	condition := bson.M {
-		"type": typeRol,
+		"code": code,
 	}
 
-	var result models.Role
+	var result models.StudyPlan
 
 	err := collection.FindOne(ctx, condition).Decode(&result)
-	if (result.Type != "") {
+	if (result.Name != "") {
 		return result.ID.Hex(), true, nil
 	}
 
@@ -97,25 +97,25 @@ func CheckExistRole(typeRol string) (string, bool, error) {
 
 /***************************************************************/
 /***************************************************************/
-/* UpdateRoleDB update the role in the db */
-func UpdateRoleDB(r models.Role) (bool, error) {
+/* UpdateStudyPlanDB update the study plan in the db */
+func UpdateStudyPlanDB(s models.StudyPlan) (bool, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 15 * time.Second)
 	defer cancel()
 
 	db := config.MongoConnection.Database("san_martin")
-	collection := db.Collection("role")
+	collection := db.Collection("study_plan")
 
 	row := make(map[string]interface{})
-	row["type"] = r.Type
+	row["name"] = s.Name
 
 	updateString := bson.M {
 		"$set": row,
 	}
 
-	var idRole string
-	idRole = r.ID.Hex()
+	var idStudyPlan string
+	idStudyPlan = s.ID.Hex()
 
-	objID, _ := primitive.ObjectIDFromHex(idRole)
+	objID, _ := primitive.ObjectIDFromHex(idStudyPlan)
 
 	filter := bson.M { "_id": bson.M { "$eq": objID }}
 
@@ -129,42 +129,32 @@ func UpdateRoleDB(r models.Role) (bool, error) {
 
 /***************************************************************/
 /***************************************************************/
-/* DeleteRoleDB delete the user role from the db */
-func DeleteRoleDB(IDRole string) error {
+/* UpdateStateStudyPlanDB update the study plan in the db */
+func UpdateStateStudyPlanDB(s models.StudyPlan) (bool, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 15 * time.Second)
 	defer cancel()
 
 	db := config.MongoConnection.Database("san_martin")
-	collection := db.Collection("role")
+	collection := db.Collection("study_plan")
 
-	objID, _ := primitive.ObjectIDFromHex(IDRole)
+	row := make(map[string]interface{})
+	row["state"] = s.State
 
-	condition := bson.M {
-		"_id": objID,
+	updateString := bson.M {
+		"$set": row,
 	}
 
-	_, err := collection.DeleteOne(ctx, condition)
-	return err
-}
+	var idStudyPlan string
+	idStudyPlan = s.ID.Hex()
 
-/***************************************************************/
-/***************************************************************/
-/* GetRoleDB get the role user by id */
-func GetRoleDB(IDRole string) (models.Role, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 15 * time.Second)
-	defer cancel()
+	objID, _ := primitive.ObjectIDFromHex(idStudyPlan)
 
-	db := config.MongoConnection.Database("san_martin")
-	collection := db.Collection("role")
+	filter := bson.M { "_id": bson.M { "$eq": objID }}
 
-	objID, _ := primitive.ObjectIDFromHex(IDRole)
-
-	condition := bson.M {
-		"_id": objID,
+	_, err := collection.UpdateOne(ctx, filter, updateString)
+	if err != nil {
+		return false, err
 	}
 
-	var role models.Role
-
-	err := collection.FindOne(ctx, condition).Decode(&role)
-	return role, err
+	return true, nil
 }

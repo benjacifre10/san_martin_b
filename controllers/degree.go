@@ -11,12 +11,12 @@ import (
 
 /***************************************************************/
 /***************************************************************/
-/* GetRoles get all the user roles */
-func GetRoles(w http.ResponseWriter, r *http.Request) {
-	result, status := services.GetRolesService()
+/* GetDegrees get all the academy degrees */
+func GetDegrees(w http.ResponseWriter, r *http.Request) {
+	result, status := services.GetDegreesService()
 	if status == false {
 		res := models.Response {
-			Message: "Error al consultar los roles",
+			Message: "Error al consultar las carreras",
 			Code: 400,
 		}
 		json.NewEncoder(w).Encode(res)
@@ -34,15 +34,15 @@ func GetRoles(w http.ResponseWriter, r *http.Request) {
 
 /***************************************************************/
 /***************************************************************/
-/* InsertRole insert one user role */
-func InsertRole(w http.ResponseWriter, r *http.Request) {
-	var role models.Role
-	err := json.NewDecoder(r.Body).Decode(&role)
+/* InsertDegree insert one academy degree */
+func InsertDegree(w http.ResponseWriter, r *http.Request) {
+	var degree models.Degree
+	err := json.NewDecoder(r.Body).Decode(&degree)
 
-	msg, code, err := services.InsertRoleService(role)
+	msg, code, err := services.InsertDegreeService(degree)
 	if err != nil || code != 201 {
 		res := models.Response {
-			Message: "Error al insertar el rol. " + msg,
+			Message: "Error al insertar la carrera. " + msg,
 			Code: code,
 		}
 		json.NewEncoder(w).Encode(res)
@@ -51,7 +51,7 @@ func InsertRole(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusCreated)
 	res := models.Response {
-		Message: "Se ha insertado el rol correctamente",
+		Message: "Se ha insertado la carrera correctamente",
 		Code: code,
 		Data: msg,
 	}
@@ -60,18 +60,18 @@ func InsertRole(w http.ResponseWriter, r *http.Request) {
 
 /***************************************************************/
 /***************************************************************/
-/* UpdateRole update one user role */
-func UpdateRole(w http.ResponseWriter, r *http.Request) {
-	var role models.Role
-	err := json.NewDecoder(r.Body).Decode(&role)
+/* UpdateDegree update one academy degree */
+func UpdateDegree(w http.ResponseWriter, r *http.Request) {
+	var degree models.Degree
+	err := json.NewDecoder(r.Body).Decode(&degree)
 
 	var code int
 	var msg string
-	msg, code, err = services.UpdateRoleService(role)
+	msg, code, err = services.UpdateDegreeService(degree)
 	
 	if err != nil || code != 200 {
 		res := models.Response {
-			Message: "Error al actualizar el rol. " + msg,
+			Message: "Error al actualizar la carrera. " + msg,
 			Code: code,
 		}
 		json.NewEncoder(w).Encode(res)
@@ -88,22 +88,18 @@ func UpdateRole(w http.ResponseWriter, r *http.Request) {
 
 /***************************************************************/
 /***************************************************************/
-/* DeleteRole delete one user role */
-func DeleteRole(w http.ResponseWriter, r *http.Request) {
-	ID := r.URL.Query().Get("id")
-	if len(ID) < 1 {
-		res := models.Response {
-			Message: "Falta un parametro para borrar el rol",
-			Code: 400,
-		}
-		json.NewEncoder(w).Encode(res)
-		return
-	}
+/* ChangeActiveDegree update status degree */
+func ChangeActiveDegree(w http.ResponseWriter, r *http.Request) {
+	var degree models.Degree
+	err := json.NewDecoder(r.Body).Decode(&degree)
 
-	msg, code, err := services.DeleteRoleService(ID)
+	var code int
+	var msg string
+	msg, code, err = services.UpdateDegreeStatusService(degree)
+	
 	if err != nil || code != 200 {
 		res := models.Response {
-			Message: "Error al borrar el rol. " + msg,
+			Message: "Error al actualizar el estado de la carrera. " + msg,
 			Code: code,
 		}
 		json.NewEncoder(w).Encode(res)

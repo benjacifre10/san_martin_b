@@ -1,3 +1,4 @@
+// Package db provides ...
 package db
 
 import (
@@ -15,55 +16,55 @@ import (
 
 /***************************************************************/
 /***************************************************************/
-/* GetRolesDB get the roles from db */
-func GetRolesDB() ([]*models.Role, bool) {
+/* GetShiftsDB get the shifts from db */
+func GetShiftsDB() ([]*models.Shift, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 15 * time.Second)
 	defer cancel()
 
 	db := config.MongoConnection.Database("san_martin")
-	collection := db.Collection("role")
+	collection := db.Collection("shift")
 
-	var results []*models.Role
+	var results []*models.Shift
 
 	condition := bson.M {  }
 	optionsQuery := options.Find()
 	optionsQuery.SetSort(bson.D {{ Key: "type", Value: -1}})
 
-	roles, err := collection.Find(ctx, condition, optionsQuery)
+	shifts, err := collection.Find(ctx, condition, optionsQuery)
 	if err != nil {
 		log.Fatal(err.Error())
-		return results, false
+		return results, err
 	}
 
-	for roles.Next(context.TODO()) {
-		var row models.Role
-		err := roles.Decode(&row)
+	for shifts.Next(context.TODO()) {
+		var row models.Shift
+		err := shifts.Decode(&row)
 		if err != nil {
-			return results, false
+			return results, err
 		}
 		results = append(results, &row)
 	}
 
-	return results, true
+	return results, nil
 }
 
 /***************************************************************/
 /***************************************************************/
-/* InsertRoleDB insert one role in db */
-func InsertRoleDB(r models.Role) (string, error) {
+/* InsertShiftDB insert one shift in db */
+func InsertShiftDB(s models.Shift) (string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 15 * time.Second)
 	defer cancel()
 
 	db := config.MongoConnection.Database("san_martin")
-	collection := db.Collection("role")
+	collection := db.Collection("shift")
 
 	row := bson.M {
-		"type": r.Type,
+		"type": s.Type,
 	}
 
 	result, err := collection.InsertOne(ctx, row)
 	if err != nil {
-		return "Hubo un error al insertar el rol", err
+		return "Hubo un error al insertar el turno", err
 	}
 	
 	objID, _ := result.InsertedID.(primitive.ObjectID)
@@ -72,20 +73,20 @@ func InsertRoleDB(r models.Role) (string, error) {
 
 /***************************************************************/
 /***************************************************************/
-/* CheckExistRole check if role already exists */
-func CheckExistRole(typeRol string) (string, bool, error) {
+/* CheckExistShift check if shift already exists */
+func CheckExistShift(typeShift string) (string, bool, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 15 * time.Second)
 	defer cancel()
 
 	db := config.MongoConnection.Database("san_martin")
-	collection := db.Collection("role")
+	collection := db.Collection("shift")
 
-	typeRol = strings.ToUpper(typeRol)
+	typeShift = strings.ToUpper(typeShift)
 	condition := bson.M {
-		"type": typeRol,
+		"type": typeShift,
 	}
 
-	var result models.Role
+	var result models.Shift
 
 	err := collection.FindOne(ctx, condition).Decode(&result)
 	if (result.Type != "") {
@@ -97,25 +98,25 @@ func CheckExistRole(typeRol string) (string, bool, error) {
 
 /***************************************************************/
 /***************************************************************/
-/* UpdateRoleDB update the role in the db */
-func UpdateRoleDB(r models.Role) (bool, error) {
+/* UpdateShiftDB update the shift in the db */
+func UpdateShiftDB(s models.Shift) (bool, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 15 * time.Second)
 	defer cancel()
 
 	db := config.MongoConnection.Database("san_martin")
-	collection := db.Collection("role")
+	collection := db.Collection("shift")
 
 	row := make(map[string]interface{})
-	row["type"] = r.Type
+	row["type"] = s.Type
 
 	updateString := bson.M {
 		"$set": row,
 	}
 
-	var idRole string
-	idRole = r.ID.Hex()
+	var idShift string
+	idShift = s.ID.Hex()
 
-	objID, _ := primitive.ObjectIDFromHex(idRole)
+	objID, _ := primitive.ObjectIDFromHex(idShift)
 
 	filter := bson.M { "_id": bson.M { "$eq": objID }}
 
@@ -129,15 +130,15 @@ func UpdateRoleDB(r models.Role) (bool, error) {
 
 /***************************************************************/
 /***************************************************************/
-/* DeleteRoleDB delete the user role from the db */
-func DeleteRoleDB(IDRole string) error {
+/* DeleteShiftDB delete the academy shift from the db */
+func DeleteShiftDB(IDShift string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 15 * time.Second)
 	defer cancel()
 
 	db := config.MongoConnection.Database("san_martin")
-	collection := db.Collection("role")
+	collection := db.Collection("shift")
 
-	objID, _ := primitive.ObjectIDFromHex(IDRole)
+	objID, _ := primitive.ObjectIDFromHex(IDShift)
 
 	condition := bson.M {
 		"_id": objID,
@@ -149,22 +150,22 @@ func DeleteRoleDB(IDRole string) error {
 
 /***************************************************************/
 /***************************************************************/
-/* GetRoleDB get the role user by id */
-func GetRoleDB(IDRole string) (models.Role, error) {
+/* GetShiftDB get the academy shift by id */
+func GetShiftDB(IDShift string) (models.Shift, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 15 * time.Second)
 	defer cancel()
 
 	db := config.MongoConnection.Database("san_martin")
-	collection := db.Collection("role")
+	collection := db.Collection("shift")
 
-	objID, _ := primitive.ObjectIDFromHex(IDRole)
+	objID, _ := primitive.ObjectIDFromHex(IDShift)
 
 	condition := bson.M {
 		"_id": objID,
 	}
 
-	var role models.Role
+	var shift models.Shift
 
-	err := collection.FindOne(ctx, condition).Decode(&role)
-	return role, err
+	err := collection.FindOne(ctx, condition).Decode(&shift)
+	return shift, err
 }
