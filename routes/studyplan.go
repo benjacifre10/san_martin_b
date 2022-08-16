@@ -12,7 +12,7 @@ func StudyPlanRoutes(router *mux.Router) (*mux.Router) {
 	router.HandleFunc("/studyplan", middlewares.DbCheck(middlewares.ValidatedJWT(controllers.GetStudyPlans))).Methods("GET")
 	router.HandleFunc("/studyplan", middlewares.DbCheck(middlewares.ValidatedJWT(controllers.InsertStudyPlan))).Methods("POST")
 	router.HandleFunc("/studyplan", middlewares.DbCheck(middlewares.ValidatedJWT(controllers.UpdateStudyPlan))).Methods("PUT")
-	router.HandleFunc("/studyplan/status", middlewares.DbCheck(middlewares.ValidatedJWT(controllers.ChangeStateStudyPlan))).Methods("PUT")
+	router.HandleFunc("/studyplan/state", middlewares.DbCheck(middlewares.ValidatedJWT(controllers.ChangeStateStudyPlan))).Methods("PUT")
 
 	return router
 }

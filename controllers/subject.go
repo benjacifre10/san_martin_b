@@ -11,13 +11,13 @@ import (
 
 /***************************************************************/
 /***************************************************************/
-/* GetStudyPlans get all the study plans */
-func GetStudyPlans(w http.ResponseWriter, r *http.Request) {
-	result, code, err := services.GetStudyPlansService()
-	if err != nil || code != 200 {
+/* GetSubjects get all the academy subjects */
+func GetSubjects(w http.ResponseWriter, r *http.Request) {
+	result, status := services.GetSubjectsService()
+	if status == false {
 		res := models.Response {
-			Message: "Error al consultar los planes de estudio " + err.Error(),
-			Code: code,
+			Message: "Error al consultar las materias",
+			Code: 400,
 		}
 		json.NewEncoder(w).Encode(res)
 		return
@@ -34,15 +34,15 @@ func GetStudyPlans(w http.ResponseWriter, r *http.Request) {
 
 /***************************************************************/
 /***************************************************************/
-/* InsertStudyPlan insert one study plan */
-func InsertStudyPlan(w http.ResponseWriter, r *http.Request) {
-	var studyPlan models.StudyPlan
-	err := json.NewDecoder(r.Body).Decode(&studyPlan)
+/* InsertSubject insert one academy subject */
+func InsertSubject(w http.ResponseWriter, r *http.Request) {
+	var subject models.Subject
+	err := json.NewDecoder(r.Body).Decode(&subject)
 
-	msg, code, err := services.InsertStudyPlanService(studyPlan)
+	msg, code, err := services.InsertSubjectService(subject)
 	if err != nil || code != 201 {
 		res := models.Response {
-			Message: "Error al insertar el plan de estudio. " + msg,
+			Message: "Error al insertar la materia. " + msg,
 			Code: code,
 		}
 		json.NewEncoder(w).Encode(res)
@@ -51,7 +51,7 @@ func InsertStudyPlan(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusCreated)
 	res := models.Response {
-		Message: "Se ha insertado el plan de estudio correctamente",
+		Message: "Se ha insertado la materia correctamente",
 		Code: code,
 		Data: msg,
 	}
@@ -60,18 +60,18 @@ func InsertStudyPlan(w http.ResponseWriter, r *http.Request) {
 
 /***************************************************************/
 /***************************************************************/
-/* UpdateStudyPlan update one study plan */
-func UpdateStudyPlan(w http.ResponseWriter, r *http.Request) {
-	var studyPlan models.StudyPlan
-	err := json.NewDecoder(r.Body).Decode(&studyPlan)
+/* UpdateSubject update one academy subject */
+func UpdateSubject(w http.ResponseWriter, r *http.Request) {
+	var subject models.Subject
+	err := json.NewDecoder(r.Body).Decode(&subject)
 
 	var code int
 	var msg string
-	msg, code, err = services.UpdateStudyPlanService(studyPlan)
+	msg, code, err = services.UpdateSubjectService(subject)
 	
 	if err != nil || code != 200 {
 		res := models.Response {
-			Message: "Error al actualizar el plan de estudio. " + msg,
+			Message: "Error al actualizar la materia. " + msg,
 			Code: code,
 		}
 		json.NewEncoder(w).Encode(res)
@@ -88,18 +88,22 @@ func UpdateStudyPlan(w http.ResponseWriter, r *http.Request) {
 
 /***************************************************************/
 /***************************************************************/
-/* ChangeStateStudyPlan update status study plan */
-func ChangeStateStudyPlan(w http.ResponseWriter, r *http.Request) {
-	var studyPlan models.StudyPlan
-	err := json.NewDecoder(r.Body).Decode(&studyPlan)
+/* DeleteSubject delete one academy subject */
+func DeleteSubject(w http.ResponseWriter, r *http.Request) {
+	ID := r.URL.Query().Get("id")
+	if len(ID) < 1 {
+		res := models.Response {
+			Message: "Falta un parametro para borrar la materia",
+			Code: 400,
+		}
+		json.NewEncoder(w).Encode(res)
+		return
+	}
 
-	var code int
-	var msg string
-	msg, code, err = services.UpdateStudyPlanStateService(studyPlan)
-	
+	msg, code, err := services.DeleteSubjectService(ID)
 	if err != nil || code != 200 {
 		res := models.Response {
-			Message: "Error al actualizar el estado del plan de estudio. " + msg,
+			Message: "Error al borrar la materia. " + msg,
 			Code: code,
 		}
 		json.NewEncoder(w).Encode(res)

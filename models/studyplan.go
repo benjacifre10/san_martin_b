@@ -19,3 +19,14 @@ type StudyPlan struct {
 	CreatedAt time.Time `bson:"createdat" json:"createdAt,omitempty"`
 	UpdatedAt time.Time `bson:"updatedat" json:"updatedAt,omitempty"`
 }
+
+/***************************************************************/
+/***************************************************************/
+/* StudyPlanResponse get the study plans info */
+type StudyPlanResponse struct {
+	ID primitive.ObjectID `bson:"_id,omitempty" json:""`
+	Name string `bson:"name" json:"name,omitempty"`
+	Code string `bson:"code" json:"code,omitempty"`
+	Degree string `bson:"degree" json:"degree,omitempty"`
+	State bool `bson:"state" json:"state"`
+}

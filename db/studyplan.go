@@ -2,48 +2,63 @@ package db
 
 import (
 	"context"
-	"log"
 	"time"
 
 	"github.com/benjacifre10/san_martin_b/config"
 	"github.com/benjacifre10/san_martin_b/models"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 /***************************************************************/
 /***************************************************************/
 /* GetStudyPlansDB get the study plans from db */
-func GetStudyPlansDB() ([]*models.StudyPlan, bool) {
+func GetStudyPlansDB() ([]models.StudyPlanResponse, int, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 15 * time.Second)
 	defer cancel()
 
 	db := config.MongoConnection.Database("san_martin")
 	collection := db.Collection("study_plan")
 
-	var results []*models.StudyPlan
+	condition := make([]bson.M, 0)
 
-	condition := bson.M {  }
-	optionsQuery := options.Find()
-	optionsQuery.SetSort(bson.D {{ Key: "name", Value: 1}, { Key: "state", Value: 1}})
+	// project me sirve tanto para dejar afuera a algunos campos
+	// como tambien para calcular y mostrar otros
+	condition = append(condition, bson.M {
+		"$project": bson.M { 
+			"degreeid": bson.M { "$toObjectId": "$degreeid" },
+			"code": "$code",
+			"state": "$state",
+			"name": "$name",
+		},
+	})
+	// aca conecto las dos tablas
+	condition = append(condition, bson.M {
+		"$lookup": bson.M {
+			"from": "degree",
+			"localField": "degreeid",
+			"foreignField": "_id",
+			"as": "degree",
+	}})
+	condition = append(condition, bson.M { "$unwind": "$degree" })
 
-	studyPlans, err := collection.Find(ctx, condition, optionsQuery)
+	condition = append(condition, bson.M {
+		"$project": bson.M { 
+			"code": "$code",
+			"state": "$state",
+			"name": "$name",
+			"degree": "$degree.name",
+		},
+	})
+	
+	cur, err := collection.Aggregate(ctx, condition)
+	var result []models.StudyPlanResponse
+
+	err = cur.All(ctx, &result)
 	if err != nil {
-		log.Fatal(err.Error())
-		return results, false
-	}
-
-	for studyPlans.Next(context.TODO()) {
-		var row models.StudyPlan
-		err := studyPlans.Decode(&row)
-		if err != nil {
-			return results, false
-		}
-		results = append(results, &row)
-	}
-
-	return results, true
+		return result, 400, err
+  }
+	return result, 200, nil
 }
 
 /***************************************************************/
@@ -60,6 +75,9 @@ func InsertStudyPlanDB(s models.StudyPlan) (string, error) {
 		"name": s.Name,
 		"code": s.Code,
 		"state": s.State,
+		"degreeid": s.DegreeId,
+		"createdat": s.CreatedAt,
+		"updatedat": s.UpdatedAt,
 	}
 
 	result, err := collection.InsertOne(ctx, row)
@@ -74,15 +92,24 @@ func InsertStudyPlanDB(s models.StudyPlan) (string, error) {
 /***************************************************************/
 /***************************************************************/
 /* CheckExistStudyPlan check if study plan already exists */
-func CheckExistStudyPlan(code string) (string, bool, error) {
+func CheckExistStudyPlan(name string, code string) (string, bool, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 15 * time.Second)
 	defer cancel()
 
 	db := config.MongoConnection.Database("san_martin")
 	collection := db.Collection("study_plan")
 
-	condition := bson.M {
-		"code": code,
+	var condition = bson.M{}
+	if code != "" {
+		condition = bson.M {
+			"code": code,
+		}
+	}
+
+	if name != "" {
+		condition = bson.M {
+			"name": name,
+		}
 	}
 
 	var result models.StudyPlan
@@ -107,6 +134,7 @@ func UpdateStudyPlanDB(s models.StudyPlan) (bool, error) {
 
 	row := make(map[string]interface{})
 	row["name"] = s.Name
+	row["updatedat"] = time.Now()
 
 	updateString := bson.M {
 		"$set": row,

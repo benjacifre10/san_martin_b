@@ -11,14 +11,14 @@ import (
 /***************************************************************/
 /***************************************************************/
 /* GetStudyPlansService call the db to get the study plans */
-func GetStudyPlansService() ([]*models.StudyPlan, bool) {
+func GetStudyPlansService() ([]models.StudyPlanResponse, int, error) {
 	// call the db
-	result, status := db.GetStudyPlansDB()
-	if status == false {
-		return result, status
+	result, code, err := db.GetStudyPlansDB()
+	if err != nil || code != 200 {
+		return result, code, err
 	}
 
-	return result, status
+	return result, code, nil
 }
 
 /***************************************************************/
@@ -52,7 +52,7 @@ func InsertStudyPlanService(s models.StudyPlan) (string, int, error) {
 	}
 
 	// verify if the code has already exists
-	_, check, errorCheck := db.CheckExistStudyPlan(s.Code)
+	_, check, errorCheck := db.CheckExistStudyPlan("",s.Code)
 	if check == true {
 		return "Ya existe ese codigo de plan de estudio en el sistema", 199, errorCheck
 	}
@@ -82,15 +82,6 @@ func UpdateStudyPlanService(s models.StudyPlan) (string, int, error) {
 		return "El plan de estudio no puede venir vacio", 199, nil
 	}
 
-	// check if the code of study plan is empty
-	if len(s.Code) == 0 {
-		return "El codigo de plan de estudio no puede venir vacio", 199, nil
-	}
-
-	// check if the code of study plan is empty
-	if len(s.DegreeId) == 0 {
-		return "Debe venir una carrera al plan de estudio asociada", 199, nil
-	}
 	// verify if the type has any number
 	anyNumber, errRegexp := regexp.MatchString(`\d+`, s.Name)
 	if anyNumber == true {
@@ -98,9 +89,9 @@ func UpdateStudyPlanService(s models.StudyPlan) (string, int, error) {
 	}
 
 	// verify if the code has already exists
-	_, check, errorCheck := db.CheckExistStudyPlan(s.Code)
+	_, check, errorCheck := db.CheckExistStudyPlan(s.Name,"")
 	if check == true {
-		return "Ya existe ese codigo de plan de estudio en el sistema", 199, errorCheck
+		return "Ya existe ese plan de estudio en el sistema", 199, errorCheck
 	}
 
 	_, err := db.UpdateStudyPlanDB(s)

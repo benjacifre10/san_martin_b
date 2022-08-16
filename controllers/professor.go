@@ -11,13 +11,13 @@ import (
 
 /***************************************************************/
 /***************************************************************/
-/* GetStudyPlans get all the study plans */
-func GetStudyPlans(w http.ResponseWriter, r *http.Request) {
-	result, code, err := services.GetStudyPlansService()
-	if err != nil || code != 200 {
+/* GetProfessors get all the professors */
+func GetProfessors(w http.ResponseWriter, r *http.Request) {
+	result, status := services.GetProfessorsService()
+	if status == false {
 		res := models.Response {
-			Message: "Error al consultar los planes de estudio " + err.Error(),
-			Code: code,
+			Message: "Error al consultar los profesores",
+			Code: 400,
 		}
 		json.NewEncoder(w).Encode(res)
 		return
@@ -34,15 +34,15 @@ func GetStudyPlans(w http.ResponseWriter, r *http.Request) {
 
 /***************************************************************/
 /***************************************************************/
-/* InsertStudyPlan insert one study plan */
-func InsertStudyPlan(w http.ResponseWriter, r *http.Request) {
-	var studyPlan models.StudyPlan
-	err := json.NewDecoder(r.Body).Decode(&studyPlan)
+/* InsertProfessor insert one professor */
+func InsertProfessor(w http.ResponseWriter, r *http.Request) {
+	var professor models.Professor
+	err := json.NewDecoder(r.Body).Decode(&professor)
 
-	msg, code, err := services.InsertStudyPlanService(studyPlan)
+	msg, code, err := services.InsertProfessorService(professor)
 	if err != nil || code != 201 {
 		res := models.Response {
-			Message: "Error al insertar el plan de estudio. " + msg,
+			Message: "Error al insertar el profesor. " + msg,
 			Code: code,
 		}
 		json.NewEncoder(w).Encode(res)
@@ -51,7 +51,7 @@ func InsertStudyPlan(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusCreated)
 	res := models.Response {
-		Message: "Se ha insertado el plan de estudio correctamente",
+		Message: "Se ha insertado el profesor correctamente",
 		Code: code,
 		Data: msg,
 	}
@@ -60,18 +60,18 @@ func InsertStudyPlan(w http.ResponseWriter, r *http.Request) {
 
 /***************************************************************/
 /***************************************************************/
-/* UpdateStudyPlan update one study plan */
-func UpdateStudyPlan(w http.ResponseWriter, r *http.Request) {
-	var studyPlan models.StudyPlan
-	err := json.NewDecoder(r.Body).Decode(&studyPlan)
+/* UpdateProfessor update one professor */
+func UpdateProfessor(w http.ResponseWriter, r *http.Request) {
+	var professor models.Professor
+	err := json.NewDecoder(r.Body).Decode(&professor)
 
 	var code int
 	var msg string
-	msg, code, err = services.UpdateStudyPlanService(studyPlan)
+	msg, code, err = services.UpdateProfessorService(professor)
 	
 	if err != nil || code != 200 {
 		res := models.Response {
-			Message: "Error al actualizar el plan de estudio. " + msg,
+			Message: "Error al actualizar el profesor. " + msg,
 			Code: code,
 		}
 		json.NewEncoder(w).Encode(res)
@@ -88,18 +88,22 @@ func UpdateStudyPlan(w http.ResponseWriter, r *http.Request) {
 
 /***************************************************************/
 /***************************************************************/
-/* ChangeStateStudyPlan update status study plan */
-func ChangeStateStudyPlan(w http.ResponseWriter, r *http.Request) {
-	var studyPlan models.StudyPlan
-	err := json.NewDecoder(r.Body).Decode(&studyPlan)
+/* DeleteProfessor delete one professor */
+func DeleteProfessor(w http.ResponseWriter, r *http.Request) {
+	ID := r.URL.Query().Get("id")
+	if len(ID) < 1 {
+		res := models.Response {
+			Message: "Falta un parametro para borrar el profesor",
+			Code: 400,
+		}
+		json.NewEncoder(w).Encode(res)
+		return
+	}
 
-	var code int
-	var msg string
-	msg, code, err = services.UpdateStudyPlanStateService(studyPlan)
-	
+	msg, code, err := services.DeleteProfessorService(ID)
 	if err != nil || code != 200 {
 		res := models.Response {
-			Message: "Error al actualizar el estado del plan de estudio. " + msg,
+			Message: "Error al borrar el profesor. " + msg,
 			Code: code,
 		}
 		json.NewEncoder(w).Encode(res)
@@ -113,3 +117,4 @@ func ChangeStateStudyPlan(w http.ResponseWriter, r *http.Request) {
 	}
 	json.NewEncoder(w).Encode(res)
 }
+
