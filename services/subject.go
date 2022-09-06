@@ -10,14 +10,14 @@ import (
 /***************************************************************/
 /***************************************************************/
 /* GetSubjectsService call the db to get the subjects */
-func GetSubjectsService() ([]*models.Subject, bool) {
+func GetSubjectsService() ([]models.SubjectResponse, int, error) {
 	// call the db
-	result, status := db.GetSubjectsDB()
-	if status == false {
-		return result, status
+	result, code, err := db.GetSubjectsDB()
+	if err != nil || code != 200 {
+		return result, code, err
 	}
 
-	return result, status
+	return result, code, nil
 }
 
 /***************************************************************/
@@ -28,6 +28,18 @@ func InsertSubjectService(s models.Subject) (string, int, error) {
 	if len(s.Name) == 0 {
 		return "No puede registrar la materia vacia", 199, nil
 	}
+	// check if the professor is empty
+	if len(s.ProfessorId) == 0 {
+		return "No puede registrar la materia sin un profesor asignado", 199, nil
+	}
+	// check if the shift is empty
+	if len(s.ShiftId) == 0 {
+		return "No puede registrar la materia sin un turno asignado", 199, nil
+	}
+	// check if the pursue type is empty
+	if len(s.PursueTypeId) == 0 {
+		return "No puede registrar la materia sin una modalidad asignada", 199, nil
+	}
 
 	// verify if the name has any number
 	anyNumber, errRegexp := regexp.MatchString(`\d+`, s.Name)
@@ -36,7 +48,7 @@ func InsertSubjectService(s models.Subject) (string, int, error) {
 	}
 
 	// verify if the name has already exists
-	_, check, errorCheck := db.CheckExistSubject(s.Name)
+	_, check, errorCheck := db.CheckExistSubject("", s.Name)
 	if check == true {
 		return "Ya existe esa materia en el sistema", 199, errorCheck
 	}
@@ -75,7 +87,7 @@ func UpdateSubjectService(s models.Subject) (string, int, error) {
 	}
 
 	// verify if the name has already exists
-	_, check, errorCheck := db.CheckExistSubject(s.Name)
+	_, check, errorCheck := db.CheckExistSubject(s.ID.Hex(), s.Name)
 	if check == true {
 		return "Ya existe esa materia en el sistema", 199, errorCheck
 	}

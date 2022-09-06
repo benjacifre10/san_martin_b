@@ -2,48 +2,87 @@ package db
 
 import (
 	"context"
-	"log"
 	"time"
 
 	"github.com/benjacifre10/san_martin_b/config"
 	"github.com/benjacifre10/san_martin_b/models"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 /***************************************************************/
 /***************************************************************/
 /* GetSubjectsDB get the subjects from db */
-func GetSubjectsDB() ([]*models.Subject, bool) {
+func GetSubjectsDB() ([]models.SubjectResponse, int, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 15 * time.Second)
 	defer cancel()
 
 	db := config.MongoConnection.Database("san_martin")
 	collection := db.Collection("subject")
 
-	var results []*models.Subject
+	condition := make([]bson.M, 0)
 
-	condition := bson.M {  }
-	optionsQuery := options.Find()
-	optionsQuery.SetSort(bson.D {{ Key: "name", Value: 1}})
+	// project me sirve tanto para dejar afuera a algunos campos
+	// como tambien para calcular y mostrar otros
+	condition = append(condition, bson.M {
+		"$project": bson.M { 
+			"professorid": bson.M { "$toObjectId": "$professorid" },
+			"shiftid": bson.M { "$toObjectId": "$shiftid" },
+			"pursuetypeid": bson.M { "$toObjectId": "$pursuetypeid" },
+			"name": "$name",
+			"credithours": "$credithours",
+			"days": "$days",
+			"from": "$from",
+			"to": "$to",
+		},
+	})
+	// aca conecto las dos tablas
+	condition = append(condition, bson.M {
+		"$lookup": bson.M {
+			"from": "professor",
+			"localField": "professorid",
+			"foreignField": "_id",
+			"as": "professor",
+	}})
+	condition = append(condition, bson.M { "$unwind": "$professor" })
+	condition = append(condition, bson.M {
+		"$lookup": bson.M {
+			"from": "shift",
+			"localField": "shiftid",
+			"foreignField": "_id",
+			"as": "shift",
+	}})
+	condition = append(condition, bson.M { "$unwind": "$shift" })
+	condition = append(condition, bson.M {
+		"$lookup": bson.M {
+			"from": "pursue_type",
+			"localField": "pursuetypeid",
+			"foreignField": "_id",
+			"as": "pursuetype",
+	}})
+	condition = append(condition, bson.M { "$unwind": "$pursuetype" })
 
-	subjects, err := collection.Find(ctx, condition, optionsQuery)
+	condition = append(condition, bson.M {
+		"$project": bson.M { 
+			"name": "$name",
+			"professor": bson.M { "$concat": []string {"$professor.name", " ", "$professor.surname"} },
+			"shift": "$shift.type",
+			"pursuetype": "$pursuetype.type",
+			"credithours": "$credithours",
+			"days": "$days",
+			"from": "$from",
+			"to": "$to",
+		},
+	})
+	
+	cur, err := collection.Aggregate(ctx, condition)
+	var result []models.SubjectResponse
+
+	err = cur.All(ctx, &result)
 	if err != nil {
-		log.Fatal(err.Error())
-		return results, false
-	}
-
-	for subjects.Next(context.TODO()) {
-		var row models.Subject
-		err := subjects.Decode(&row)
-		if err != nil {
-			return results, false
-		}
-		results = append(results, &row)
-	}
-
-	return results, true
+		return result, 400, err
+  }
+	return result, 200, nil
 }
 
 /***************************************************************/
@@ -79,7 +118,7 @@ func InsertSubjectDB(s models.Subject) (string, error) {
 /***************************************************************/
 /***************************************************************/
 /* CheckExistSubject check if subject already exists */
-func CheckExistSubject(nameSubject string) (string, bool, error) {
+func CheckExistSubject(idSubject string, nameSubject string) (string, bool, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 15 * time.Second)
 	defer cancel()
 
@@ -93,8 +132,14 @@ func CheckExistSubject(nameSubject string) (string, bool, error) {
 	var result models.Subject
 
 	err := collection.FindOne(ctx, condition).Decode(&result)
-	if (result.Name != "") {
-		return result.ID.Hex(), true, nil
+	if (idSubject == "") {
+		if (result.Name != "") {
+			return result.ID.Hex(), true, nil
+		}
+	} else {
+		if (result.Name != "" && idSubject != result.ID.Hex()) {
+			return result.ID.Hex(), true, nil
+		}
 	}
 
 	return "", false, err
@@ -109,7 +154,7 @@ func UpdateSubjectDB(s models.Subject) (bool, error) {
 
 	db := config.MongoConnection.Database("san_martin")
 	collection := db.Collection("subject")
-
+	
 	row := make(map[string]interface{})
 	row["name"] = s.Name
 	row["professorid"] = s.ProfessorId

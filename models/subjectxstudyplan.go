@@ -1,0 +1,15 @@
+// Package models provides ...
+package models
+
+import (
+	"go.mongodb.org/mongo-driver/bson/primitive"
+)
+
+/***************************************************************/
+/***************************************************************/
+/* SubjectXStudyPlan model for the mongo DB */
+type SubjectXStudyPlan struct {
+	ID primitive.ObjectID `bson:"_id,omitempty" json:""`
+	SubjectId string `bson:"subjectid" json:"subjectId,omitempty"`
+	StudyPlanId string `bson:"studyplanid" json:"studyPlanId,omitempty"`
+}

@@ -11,6 +11,7 @@ func HandlerRoutes() (*mux.Router) {
 	router := mux.NewRouter()
 
 	router.HandleFunc("/health", controllers.Health).Methods("GET")
+	router = CorrelativeRoutes(router)
 	router = DegreeRoutes(router)
 	router = ProfessorRoutes(router)
 	router = PursueTypeRoutes(router)
@@ -18,6 +19,7 @@ func HandlerRoutes() (*mux.Router) {
 	router = ShiftRoutes(router)
 	router = StudyPlanRoutes(router)
 	router = SubjectRoutes(router)
+	router = SubjectXStudyPlanRoutes(router)
 	router = TestTypeRoutes(router)
 	router = UserRoutes(router)
 

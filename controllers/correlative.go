@@ -11,12 +11,12 @@ import (
 
 /***************************************************************/
 /***************************************************************/
-/* GetSubjects get all the academy subjects */
-func GetSubjects(w http.ResponseWriter, r *http.Request) {
-	result, code, err := services.GetSubjectsService()
-	if err != nil || code != 200 {
+/* GetCorrelativesByStudyPlan get all the correlatives from a study plan */
+func GetCorrelativesByStudyPlan(w http.ResponseWriter, r *http.Request) {
+	result, status := services.GetCorrelativesByStudyPlanService()
+	if status == false {
 		res := models.Response {
-			Message: "Error al consultar las materias",
+			Message: "Error al consultar las correlatividades",
 			Code: 400,
 		}
 		json.NewEncoder(w).Encode(res)
@@ -34,15 +34,15 @@ func GetSubjects(w http.ResponseWriter, r *http.Request) {
 
 /***************************************************************/
 /***************************************************************/
-/* InsertSubject insert one academy subject */
-func InsertSubject(w http.ResponseWriter, r *http.Request) {
-	var subject models.Subject
-	err := json.NewDecoder(r.Body).Decode(&subject)
+/* InsertCorrelative insert one subject correlative */
+func InsertCorrelative(w http.ResponseWriter, r *http.Request) {
+	var correlative models.Degree
+	err := json.NewDecoder(r.Body).Decode(&correlative)
 
-	msg, code, err := services.InsertSubjectService(subject)
+	msg, code, err := services.InsertCorrelativeService(correlative)
 	if err != nil || code != 201 {
 		res := models.Response {
-			Message: "Error al insertar la materia. " + msg,
+			Message: "Error al insertar la correlatividad. " + msg,
 			Code: code,
 		}
 		json.NewEncoder(w).Encode(res)
@@ -51,7 +51,7 @@ func InsertSubject(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusCreated)
 	res := models.Response {
-		Message: "Se ha insertado la materia correctamente",
+		Message: "Se ha insertado la correlatividad correctamente",
 		Code: code,
 		Data: msg,
 	}
@@ -60,18 +60,18 @@ func InsertSubject(w http.ResponseWriter, r *http.Request) {
 
 /***************************************************************/
 /***************************************************************/
-/* UpdateSubject update one academy subject */
-func UpdateSubject(w http.ResponseWriter, r *http.Request) {
-	var subject models.Subject
-	err := json.NewDecoder(r.Body).Decode(&subject)
+/* UpdateCorrelative update one subject correlative */
+func UpdateCorrelative(w http.ResponseWriter, r *http.Request) {
+	var correlative models.Degree
+	err := json.NewDecoder(r.Body).Decode(&correlative)
 
 	var code int
 	var msg string
-	msg, code, err = services.UpdateSubjectService(subject)
+	msg, code, err = services.UpdateCorrelativeService(correlative)
 	
 	if err != nil || code != 200 {
 		res := models.Response {
-			Message: "Error al actualizar la materia. " + msg,
+			Message: "Error al actualizar la correlatividad. " + msg,
 			Code: code,
 		}
 		json.NewEncoder(w).Encode(res)
@@ -88,22 +88,22 @@ func UpdateSubject(w http.ResponseWriter, r *http.Request) {
 
 /***************************************************************/
 /***************************************************************/
-/* DeleteSubject delete one academy subject */
-func DeleteSubject(w http.ResponseWriter, r *http.Request) {
+/* DeleteCorrelative delete one subject correlative */
+func DeleteCorrelative(w http.ResponseWriter, r *http.Request) {
 	ID := r.URL.Query().Get("id")
 	if len(ID) < 1 {
 		res := models.Response {
-			Message: "Falta un parametro para borrar la materia",
+			Message: "Falta un parametro para borrar la correlatividad",
 			Code: 400,
 		}
 		json.NewEncoder(w).Encode(res)
 		return
 	}
 
-	msg, code, err := services.DeleteSubjectService(ID)
+	msg, code, err := services.DeleteCorrelativeService(ID)
 	if err != nil || code != 200 {
 		res := models.Response {
-			Message: "Error al borrar la materia. " + msg,
+			Message: "Error al borrar la correlatividad. " + msg,
 			Code: code,
 		}
 		json.NewEncoder(w).Encode(res)

@@ -20,4 +20,18 @@ type Subject struct {
 	To string `bson:"to" json:"to,omitempty"`
 }
 
+/***************************************************************/
+/***************************************************************/
+/* SubjectResponse get the subject info */
+type SubjectResponse struct {
+	ID primitive.ObjectID `bson:"_id,omitempty" json:""`
+	Name string `bson:"name" json:"name,omitempty"`
+	Professor string `bson:"professor" json:"professor,omitempty"`
+	Shift string `bson:"shift" json:"shift,omitempty"`
+	PursueType string `bson:"pursuetype" json:"pursuetype,omitempty"`
+	CreditHours int `bson:"credithours" json:"creditHours"`
+	Days []string `bson:"days" json:"days,omitempty"`
+	From string `bson:"from" json:"from,omitempty"`
+	To string `bson:"to" json:"to,omitempty"`
+}
 
