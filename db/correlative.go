@@ -14,56 +14,56 @@ import (
 
 /***************************************************************/
 /***************************************************************/
-/* GetDegreesDB2 get the degrees from db */
-func GetDegreesDB2() ([]*models.Degree, bool) {
+/* GetCorrelativesByStudyPlanDB get the correlatives by study plan from db */
+func GetCorrelativesByStudyPlanDB() ([]*models.Correlative, int, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 15 * time.Second)
 	defer cancel()
 
 	db := config.MongoConnection.Database("san_martin")
-	collection := db.Collection("degree")
+	collection := db.Collection("correlative")
 
-	var results []*models.Degree
+	var result []*models.Correlative
 
 	condition := bson.M {  }
 	optionsQuery := options.Find()
-	optionsQuery.SetSort(bson.D {{ Key: "name", Value: 1}, { Key: "active", Value: 1}})
 
-	degrees, err := collection.Find(ctx, condition, optionsQuery)
+	correlatives, err := collection.Find(ctx, condition, optionsQuery)
 	if err != nil {
 		log.Fatal(err.Error())
-		return results, false
+		return result, 400, err
 	}
 
-	for degrees.Next(context.TODO()) {
-		var row models.Degree
-		err := degrees.Decode(&row)
+	for correlatives.Next(context.TODO()) {
+		var row models.Correlative
+		err := correlatives.Decode(&row)
 		if err != nil {
-			return results, false
+			return result, 400, err
 		}
-		results = append(results, &row)
+		result = append(result, &row)
 	}
 
-	return results, true
+	return result, 200, nil
 }
 
 /***************************************************************/
 /***************************************************************/
-/* InsertDegreeDB2 insert one degree in db */
-func InsertDegreeDB2(d models.Degree) (string, error) {
+/* InsertCorrelativeDB insert one correlative in db */
+func InsertCorrelativeDB(c models.Correlative) (string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 15 * time.Second)
 	defer cancel()
 
 	db := config.MongoConnection.Database("san_martin")
-	collection := db.Collection("degree")
+	collection := db.Collection("correlative")
 
 	row := bson.M {
-		"name": d.Name,
-		"active": d.Active,
+		"year": c.Year,
+		"correlative": c.Correlative,
+		"subjectxstudyplanid": c.SubjectXStudyPlanId,
 	}
 
 	result, err := collection.InsertOne(ctx, row)
 	if err != nil {
-		return "Hubo un error al insertar la carrera", err
+		return "Hubo un error al insertar la correlatividad", err
 	}
 	
 	objID, _ := result.InsertedID.(primitive.ObjectID)

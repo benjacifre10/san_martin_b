@@ -13,3 +13,12 @@ type SubjectXStudyPlan struct {
 	SubjectId string `bson:"subjectid" json:"subjectId,omitempty"`
 	StudyPlanId string `bson:"studyplanid" json:"studyPlanId,omitempty"`
 }
+
+/***************************************************************/
+/***************************************************************/
+/* SubjectXStudyPlanResponse model for the response */
+type SubjectXStudyPlanResponse struct {
+	ID primitive.ObjectID `bson:"_id,omitempty" json:""`
+	Subject string `bson:"subject" json:"subject,omitempty"`
+	StudyPlan string `bson:"studyplan" json:"studyPlan,omitempty"`
+}

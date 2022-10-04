@@ -14,3 +14,4 @@ type Correlative struct {
 	Correlative []string `bson:"correlative" json:"correlative,omitempty"`
 	SubjectXStudyPlanId string `bson:"subjectxstudyplanid" json:"subjectXStudyPlanId,omitempty"`
 }
+

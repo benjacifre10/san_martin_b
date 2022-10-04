@@ -9,10 +9,10 @@ import (
 /* SubjectXStudyPlan Routes */
 func SubjectXStudyPlanRoutes(router *mux.Router) (*mux.Router) {
 
-	router.HandleFunc("/subjectxplan", middlewares.DbCheck(middlewares.ValidatedJWT(controllers.GetCorrelativesByStudyPlan))).Methods("GET")
-	router.HandleFunc("/subjectxplan", middlewares.DbCheck(middlewares.ValidatedJWT(controllers.InsertCorrelative))).Methods("POST")
-	router.HandleFunc("/subjectxplan", middlewares.DbCheck(middlewares.ValidatedJWT(controllers.UpdateCorrelative))).Methods("PUT")
-	router.HandleFunc("/subjectxplan", middlewares.DbCheck(middlewares.ValidatedJWT(controllers.DeleteCorrelative))).Methods("DELETE")
+	router.HandleFunc("/subjectxplan", middlewares.DbCheck(middlewares.ValidatedJWT(controllers.GetSubjectsXStudyPlan))).Methods("GET")
+	router.HandleFunc("/subjectxplan", middlewares.DbCheck(middlewares.ValidatedJWT(controllers.InsertSubjectXStudyPlan))).Methods("POST")
+	router.HandleFunc("/subjectxplan", middlewares.DbCheck(middlewares.ValidatedJWT(controllers.UpdateSubjectXStudyPlan))).Methods("PUT")
+	router.HandleFunc("/subjectxplan", middlewares.DbCheck(middlewares.ValidatedJWT(controllers.DeleteSubjectXStudyPlan))).Methods("DELETE")
 
 	return router
 }

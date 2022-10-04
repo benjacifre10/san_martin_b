@@ -10,48 +10,42 @@ import (
 /***************************************************************/
 /***************************************************************/
 /* GetCorrelativesByStudyPlanService call the db to get the correlatives */
-func GetCorrelativesByStudyPlanService() ([]*models.Degree, bool) {
+func GetCorrelativesByStudyPlanService() ([]*models.Correlative, int, error) {
 	// call the db
-	result, status := db.GetDegreesDB()
-	if status == false {
-		return result, status
+	result, code, err := db.GetCorrelativesByStudyPlanDB()
+	if err != nil || code != 200 {
+		return result, code, err
 	}
 
-	return result, status
+	return result, code, nil
 }
 
 /***************************************************************/
 /***************************************************************/
 /* InsertCorrelativeService call the db to insert the correlative */
-func InsertCorrelativeService(d models.Degree) (string, int, error) {
-	// check if the degree is empty
-	if len(d.Name) == 0 {
-		return "No puede registrar la carrera vacia", 199, nil
+func InsertCorrelativeService(c models.Correlative) (string, int, error) {
+	// check if the year is empty
+	if len(c.Year) == 0 {
+		return "No puede registrar la correlatividad sin el anio", 199, nil
 	}
 
-	// check if the degree is active
-	if d.Active != true {
-		return "La carrera debe estar activa al crearse", 199, nil
+	// check if the correlative is empty
+	if len(c.Correlative) == 0 {
+		return "No puede registrar la correlatividad vacia", 199, nil
 	}
 
-	// verify if the name has any number
-	anyNumber, errRegexp := regexp.MatchString(`\d+`, d.Name)
-	if anyNumber == true {
-		return "No puede registrar la carrera con numeros", 199, errRegexp
+	// check if the subject x study plan is empty
+	if len(c.SubjectXStudyPlanId) == 0 {
+		return "No puede registrar la correlatividad con el plan de estudio vacio", 199, nil
 	}
 
-	// verify if the name has already exists
-	_, check, errorCheck := db.CheckExistDegree(d.Name)
-	if check == true {
-		return "Ya existe esa carrera en el sistema", 199, errorCheck
+	row := models.Correlative {
+		Year: c.Year,
+		Correlative: c.Correlative,
+		SubjectXStudyPlanId: c.SubjectXStudyPlanId,
 	}
 
-	row := models.Degree {
-		Name: d.Name,
-		Active: d.Active,
-	}
-
-	msg, err := db.InsertDegreeDB(row)
+	msg, err := db.InsertCorrelativeDB(row)
 	if err != nil {
 		return msg, 400, err
 	}
