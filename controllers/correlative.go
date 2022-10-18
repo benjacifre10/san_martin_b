@@ -7,26 +7,24 @@ import (
 
 	"github.com/benjacifre10/san_martin_b/models"
 	"github.com/benjacifre10/san_martin_b/services"
-	"go.mongodb.org/mongo-driver/bson"
 )
 
 /***************************************************************/
 /***************************************************************/
 /* GetCorrelativesByStudyPlan get all the correlatives from a study plan */
 func GetCorrelativesByStudyPlan(w http.ResponseWriter, r *http.Request) {
-	correlatives, code, err := services.GetCorrelativesByStudyPlanService()
-	if err != nil || code != 200 {
+	
+	ID := r.URL.Query().Get("studyplanid")
+	if len(ID) < 1 {
 		res := models.Response {
-			Message: "Error al consultar las correlatividades",
+			Message: "Falta un parametro para mostrar los resultados",
 			Code: 400,
 		}
 		json.NewEncoder(w).Encode(res)
 		return
 	}
 
-	IdSubjectXStudyPlan := "2"
-
-	subjects, code2, err2 := services.GetSubjectsXStudyPlanService(IdSubjectXStudyPlan)
+	subjects, code2, err2 := services.GetSubjectsXStudyPlanService(ID)
 	if err2 != nil || code2 != 200 {
 		res := models.Response {
 			Message: "Error al consultar las materias por plan de estudio",
@@ -36,11 +34,23 @@ func GetCorrelativesByStudyPlan(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var correlatives []*models.Correlative
+
+	for i := 0; i < len(subjects); i++ {
+		corr, code, err := services.GetCorrelativesByStudyPlanService(subjects[i].ID.Hex())
+		if err != nil || code != 200 {
+			res := models.Response {
+				Message: "Error al consultar las correlatividades",
+				Code: 400,
+			}
+			json.NewEncoder(w).Encode(res)
+			return
+		}
+		correlatives = append(correlatives, corr[0])
+	}
+
 	res := models.Response {
-		Data: bson.M {
-			"correlatives": correlatives,
-			"subjects": subjects,
-		},
+		Data: correlatives,
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -76,37 +86,9 @@ func InsertCorrelative(w http.ResponseWriter, r *http.Request) {
 
 /***************************************************************/
 /***************************************************************/
-/* UpdateCorrelative update one subject correlative */
-func UpdateCorrelative(w http.ResponseWriter, r *http.Request) {
-	var correlative models.Degree
-	err := json.NewDecoder(r.Body).Decode(&correlative)
-
-	var code int
-	var msg string
-	msg, code, err = services.UpdateCorrelativeService(correlative)
-	
-	if err != nil || code != 200 {
-		res := models.Response {
-			Message: "Error al actualizar la correlatividad. " + msg,
-			Code: code,
-		}
-		json.NewEncoder(w).Encode(res)
-		return
-	}
-
-	w.WriteHeader(http.StatusOK)
-	res := models.Response {
-		Message: msg,
-		Code: code,
-	}
-	json.NewEncoder(w).Encode(res)
-}
-
-/***************************************************************/
-/***************************************************************/
 /* DeleteCorrelative delete one subject correlative */
 func DeleteCorrelative(w http.ResponseWriter, r *http.Request) {
-	ID := r.URL.Query().Get("id")
+	ID := r.URL.Query().Get("studyplanid")
 	if len(ID) < 1 {
 		res := models.Response {
 			Message: "Falta un parametro para borrar la correlatividad",
@@ -116,14 +98,29 @@ func DeleteCorrelative(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	msg, code, err := services.DeleteCorrelativeService(ID)
-	if err != nil || code != 200 {
+	subjects, code2, err2 := services.GetSubjectsXStudyPlanService(ID)
+	if err2 != nil || code2 != 200 {
 		res := models.Response {
-			Message: "Error al borrar la correlatividad. " + msg,
-			Code: code,
+			Message: "Error al consultar las materias por plan de estudio",
+			Code: 400,
 		}
 		json.NewEncoder(w).Encode(res)
 		return
+	}
+
+	var msg string
+	var code int	
+
+	for i := 0; i < len(subjects); i++ {
+		msg, code, err := services.DeleteCorrelativeService(subjects[i].ID.Hex())
+		if err != nil || code != 200 {
+			res := models.Response {
+				Message: "Error al borrar la correlatividad. " + msg,
+				Code: code,
+			}
+			json.NewEncoder(w).Encode(res)
+			return
+		}
 	}
 
 	w.WriteHeader(http.StatusOK)

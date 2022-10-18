@@ -82,3 +82,16 @@ func DeleteSubjectXStudyPlanService(IDSubjectXStudyPlan string) (string, int, er
 
 	return "La materia se desasocio correctamente", 200, nil
 }
+
+/***************************************************************/
+/***************************************************************/
+/* DeleteSubjectXStudyPlanByStudyPlanService delete the subject */
+func DeleteSubjectXStudyPlanByStudyPlanService(IDSubjectXStudyPlan string) (string, int, error) {
+
+	err := db.DeleteSubjectXStudyPlanByStudyPlanDB(IDSubjectXStudyPlan)
+	if err != nil {
+		return "Hubo un error al intentar desasociar las materias con el plan de estudio en la base", 400, err
+	}
+
+	return "Las materias se desasociaron correctamente", 200, nil
+}

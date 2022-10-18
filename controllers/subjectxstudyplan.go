@@ -127,3 +127,35 @@ func DeleteSubjectXStudyPlan(w http.ResponseWriter, r *http.Request) {
 	}
 	json.NewEncoder(w).Encode(res)
 }
+
+/***************************************************************/
+/***************************************************************/
+/* DeleteSubjectXStudyPlanByStudyPlan delete one subject per study plan */
+func DeleteSubjectXStudyPlanByStudyPlan(w http.ResponseWriter, r *http.Request) {
+	ID := r.URL.Query().Get("studyplanid")
+	if len(ID) < 1 {
+		res := models.Response {
+			Message: "Falta un parametro para desasociar la materia con el plan de estudio",
+			Code: 400,
+		}
+		json.NewEncoder(w).Encode(res)
+		return
+	}
+
+	msg, code, err := services.DeleteSubjectXStudyPlanByStudyPlanService(ID)
+	if err != nil || code != 200 {
+		res := models.Response {
+			Message: "Error al desasociar la materia con el plan de estudio. " + msg,
+			Code: code,
+		}
+		json.NewEncoder(w).Encode(res)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	res := models.Response {
+		Message: msg,
+		Code: code,
+	}
+	json.NewEncoder(w).Encode(res)
+}

@@ -164,3 +164,21 @@ func GetSubjectXStudyPlanDB(IDSubjectXStudyPlan string) (models.SubjectXStudyPla
 	err := collection.FindOne(ctx, condition).Decode(&professor)
 	return professor, err
 }
+
+/***************************************************************/
+/***************************************************************/
+/* DeleteSubjectXStudyPlanByStudyPlanDB delete the association from the db */
+func DeleteSubjectXStudyPlanByStudyPlanDB(IDSubjectXStudyPlan string) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 15 * time.Second)
+	defer cancel()
+
+	db := config.MongoConnection.Database("san_martin")
+	collection := db.Collection("subject_x_study_plan")
+
+	condition := bson.M {
+		"studyplanid": IDSubjectXStudyPlan,
+	}
+
+	_, err := collection.DeleteMany(ctx, condition)
+	return err
+}

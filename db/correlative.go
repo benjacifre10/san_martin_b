@@ -15,7 +15,7 @@ import (
 /***************************************************************/
 /***************************************************************/
 /* GetCorrelativesByStudyPlanDB get the correlatives by study plan from db */
-func GetCorrelativesByStudyPlanDB() ([]*models.Correlative, int, error) {
+func GetCorrelativesByStudyPlanDB(id string) ([]*models.Correlative, int, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 15 * time.Second)
 	defer cancel()
 
@@ -24,7 +24,10 @@ func GetCorrelativesByStudyPlanDB() ([]*models.Correlative, int, error) {
 
 	var result []*models.Correlative
 
-	condition := bson.M {  }
+	condition := bson.M { 
+		"subjectxstudyplanid": id,
+	}
+
 	optionsQuery := options.Find()
 
 	correlatives, err := collection.Find(ctx, condition, optionsQuery)
@@ -96,64 +99,18 @@ func CheckExistDegree2(nameDegree string) (string, bool, error) {
 
 /***************************************************************/
 /***************************************************************/
-/* UpdateDegreeDB2 update the degree in the db */
-func UpdateDegreeDB2(d models.Degree) (bool, error) {
+/* DeleteCorrelativeDB delete the correlative in the db */
+func DeleteCorrelativeDB(idSubjectXStudyPlan string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 15 * time.Second)
 	defer cancel()
 
 	db := config.MongoConnection.Database("san_martin")
-	collection := db.Collection("degree")
+	collection := db.Collection("correlative")
 
-	row := make(map[string]interface{})
-	row["name"] = d.Name
-
-	updateString := bson.M {
-		"$set": row,
+	condition := bson.M {
+		"subjectxstudyplanid": idSubjectXStudyPlan,
 	}
 
-	var idDegree string
-	idDegree = d.ID.Hex()
-
-	objID, _ := primitive.ObjectIDFromHex(idDegree)
-
-	filter := bson.M { "_id": bson.M { "$eq": objID }}
-
-	_, err := collection.UpdateOne(ctx, filter, updateString)
-	if err != nil {
-		return false, err
-	}
-
-	return true, nil
-}
-
-/***************************************************************/
-/***************************************************************/
-/* UpdateStatusDegreeDB2 update the degree in the db */
-func UpdateStatusDegreeDB2(d models.Degree) (bool, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 15 * time.Second)
-	defer cancel()
-
-	db := config.MongoConnection.Database("san_martin")
-	collection := db.Collection("degree")
-
-	row := make(map[string]interface{})
-	row["active"] = d.Active
-
-	updateString := bson.M {
-		"$set": row,
-	}
-
-	var idDegree string
-	idDegree = d.ID.Hex()
-
-	objID, _ := primitive.ObjectIDFromHex(idDegree)
-
-	filter := bson.M { "_id": bson.M { "$eq": objID }}
-
-	_, err := collection.UpdateOne(ctx, filter, updateString)
-	if err != nil {
-		return false, err
-	}
-
-	return true, nil
+	_, err := collection.DeleteOne(ctx, condition)
+	return err
 }
