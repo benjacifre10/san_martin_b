@@ -35,7 +35,7 @@ func InsertStudyPlanService(s models.StudyPlan) (string, int, error) {
 		return "No puede registrar un codigo de plan de estudio vacio", 199, nil
 	}
 
-	// check if the code of study plan is empty
+	// check if the degree is empty
 	if len(s.DegreeId) == 0 {
 		return "No puede registrar plan de estudio sin una carrera asociada", 199, nil
 	}

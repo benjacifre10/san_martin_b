@@ -20,6 +20,7 @@ func HandlerRoutes() (*mux.Router) {
 	router = StudyPlanRoutes(router)
 	router = SubjectRoutes(router)
 	router = SubjectXStudyPlanRoutes(router)
+	router = StudentRoutes(router)
 	router = TestTypeRoutes(router)
 	router = UserRoutes(router)
 

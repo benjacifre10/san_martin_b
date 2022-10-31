@@ -16,4 +16,3 @@ func ProfessorRoutes(router *mux.Router) (*mux.Router) {
 
 	return router
 }
-
