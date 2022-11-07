@@ -60,7 +60,7 @@ func InsertStudentService(s models.Student) (string, int, error) {
 /***************************************************************/
 /***************************************************************/
 /* GetStudentsService call the db to get the students */
-func GetStudentsService() ([]*models.Student, int, error) {
+func GetStudentsService() ([]models.StudentResponse, int, error) {
 	// call the db
 	result, err := db.GetStudentsDB()
 	if err != nil {
@@ -102,6 +102,8 @@ func UpdateStudentService(s models.Student) (string, int, error) {
 	if anyNumber == true {
 		return "No puede actualizar el apellido del estudiante con numeros", 199, errRegexp
 	}
+
+	s.UpdatedAt = time.Now()
 
 	_, err := db.UpdateStudentDB(s)
 	if err != nil {

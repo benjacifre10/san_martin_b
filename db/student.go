@@ -2,14 +2,12 @@ package db
 
 import (
 	"context"
-	"log"
 	"time"
 
 	"github.com/benjacifre10/san_martin_b/config"
 	"github.com/benjacifre10/san_martin_b/models"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 /***************************************************************/
@@ -73,35 +71,72 @@ func CheckExistStudent(identityNumber string) (string, bool, error) {
 /***************************************************************/
 /***************************************************************/
 /* GetStudentsDB get the students from db */
-func GetStudentsDB() ([]*models.Student, error) {
+func GetStudentsDB() ([]models.StudentResponse, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 15 * time.Second)
 	defer cancel()
 
 	db := config.MongoConnection.Database("san_martin")
 	collection := db.Collection("student")
 
-	var results []*models.Student
+	condition := make([]bson.M, 0)	
 
-	condition := bson.M {  }
-	optionsQuery := options.Find()
-	optionsQuery.SetSort(bson.D {{ Key: "identitynumber", Value: 1}})
+	// project me sirve tanto para dejar afuera a algunos campos
+	// como tambien para calcular y mostrar otros
+	condition = append(condition, bson.M {
+		"$project": bson.M { 
+			"degreeid": bson.M { "$toObjectId": "$degreeid" },
+			"userid": bson.M { "$toObjectId": "$userid" },
+			"name": "$name",
+			"surname": "$surname",
+			"identitynumber": "$identitynumber",
+			"address": "$address",
+			"phone": "$phone",
+			"cuil": "$cuil",
+			"arrears": "$arrears",
+			"state": "$state",
+		},
+	})
+	// aca conecto las dos tablas
+	condition = append(condition, bson.M {
+		"$lookup": bson.M {
+			"from": "degree",
+			"localField": "degreeid",
+			"foreignField": "_id",
+			"as": "degree",
+	}})
+	condition = append(condition, bson.M { "$unwind": "$degree" })
+	condition = append(condition, bson.M {
+		"$lookup": bson.M {
+			"from": "user",
+			"localField": "userid",
+			"foreignField": "_id",
+			"as": "user",
+	}})
+	condition = append(condition, bson.M { "$unwind": "$user" })
 
-	students, err := collection.Find(ctx, condition, optionsQuery)
+	condition = append(condition, bson.M {
+		"$project": bson.M { 
+			"name": "$name",
+			"surname": "$surname",
+			"degree": "$degree.name",
+			"user": "$user.email",
+			"identitynumber": "$identitynumber",
+			"address": "$address",
+			"phone": "$phone",
+			"cuil": "$cuil",
+			"arrears": "$arrears",
+			"state": "$state",
+		},
+	})
+	
+	cur, err := collection.Aggregate(ctx, condition)
+	var result []models.StudentResponse
+
+	err = cur.All(ctx, &result)
 	if err != nil {
-		log.Fatal(err.Error())
-		return results, err
-	}
-
-	for students.Next(context.TODO()) {
-		var row models.Student
-		err := students.Decode(&row)
-		if err != nil {
-			return results, err
-		}
-		results = append(results, &row)
-	}
-
-	return results, nil
+		return result, err
+  }
+	return result, nil
 }
 
 /***************************************************************/
@@ -142,6 +177,7 @@ func UpdateStudentDB(s models.Student) (bool, error) {
 	row["address"] = s.Address
 	row["phone"] = s.Phone
 	row["cuil"] = s.Cuil
+	row["updatedat"] = s.UpdatedAt
 
 	updateString := bson.M {
 		"$set": row,
