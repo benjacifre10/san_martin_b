@@ -39,9 +39,9 @@ func InsertStudent(w http.ResponseWriter, r *http.Request) {
 /***************************************************************/
 /* GetStudent get all the students or one by id */
 func GetStudent(w http.ResponseWriter, r *http.Request) {
-	ID := r.URL.Query().Get("userid")
+	Email := r.URL.Query().Get("useremail")
 	var res models.Response
-	if len(ID) < 1 {
+	if len(Email) < 1 {
 		result, code, err := services.GetStudentsService()
 		if err != nil || code != 200 {
 			res = models.Response {
@@ -56,7 +56,7 @@ func GetStudent(w http.ResponseWriter, r *http.Request) {
 			Data: result,
 		}
 	} else {
-		result, code, err := services.GetStudentService(ID)
+		result, code, err := services.GetStudentService(Email)
 		if err != nil || code != 200 {
 			res = models.Response {
 				Message: "Error al consultar el estudiante",

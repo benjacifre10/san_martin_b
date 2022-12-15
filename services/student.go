@@ -73,9 +73,9 @@ func GetStudentsService() ([]models.StudentResponse, int, error) {
 /***************************************************************/
 /***************************************************************/
 /* GetStudentService call the db to get the student by id*/
-func GetStudentService(ID string) (models.Student, int, error) {
+func GetStudentService(Email string) ([]models.StudentResponse, int, error) {
 	// call the db
-	result, err := db.GetStudentByIdDB(ID)
+	result, err := db.GetStudentByIdUserDB(Email)
 	if err != nil {
 		return result, 400, err
 	}
