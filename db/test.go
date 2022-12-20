@@ -13,36 +13,6 @@ import (
 /***************************************************************/
 /***************************************************************/
 /* GetTestsDB get the all the test from db */
-//func GetTestsDB() ([]*models.Test, bool) {
-//	ctx, cancel := context.WithTimeout(context.Background(), 15 * time.Second)
-//	defer cancel()
-//
-//	db := config.MongoConnection.Database("san_martin")
-//	collection := db.Collection("test")
-//
-//	var results []*models.Test
-//
-//	condition := bson.M {  }
-//	optionsQuery := options.Find()
-//	optionsQuery.SetSort(bson.D {{ Key: "testdate", Value: -1}})
-//
-//	tests, err := collection.Find(ctx, condition, optionsQuery)
-//	if err != nil {
-//		log.Fatal(err.Error())
-//		return results, false
-//	}
-//
-//	for tests.Next(context.TODO()) {
-//		var row models.Test
-//		err := tests.Decode(&row)
-//		if err != nil {
-//			return results, false
-//		}
-//		results = append(results, &row)
-//	}
-//
-//	return results, true
-//}
 func GetTestsDB() ([]models.TestResponse, int, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 15 * time.Second)
 	defer cancel()

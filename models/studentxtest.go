@@ -15,3 +15,14 @@ type StudentXTest struct {
 	StudentSubjectStudyPlanId string `bson:"studentsubjectstudyplanid" json:"studentSubjectStudyPlanId,omitempty"`
 }
 
+/***************************************************************/
+/***************************************************************/
+/* StudentXTestResponse model for the mongo DB */
+type StudentXTestResponse struct {
+	ID primitive.ObjectID `bson:"_id,omitempty" json:""`
+	Test string `bson:"test" json:"test"`
+	Note string `bson:"note" json:"note"`
+	Student string `bson:"student" json:"student"`
+	Subject string `bson:"subject" json:"subject,omitempty"`
+	Date string `bson:"date" json:"date"`
+}

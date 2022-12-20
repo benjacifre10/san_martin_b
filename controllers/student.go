@@ -51,10 +51,13 @@ func GetStudent(w http.ResponseWriter, r *http.Request) {
 			json.NewEncoder(w).Encode(res)
 			return
 		}
-		res = models.Response {
+		res := models.Response {
 			Code: 200,
 			Data: result,
 		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(res)
 	} else {
 		result, code, err := services.GetStudentService(Email)
 		if err != nil || code != 200 {
@@ -65,15 +68,16 @@ func GetStudent(w http.ResponseWriter, r *http.Request) {
 			json.NewEncoder(w).Encode(res)
 			return
 		}
-		res = models.Response {
+		
+		res := models.Response {
 			Code: 200,
 			Data: result,
 		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(res)
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(res)
 }
 
 /***************************************************************/
